@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 from datetime import date
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,11 +66,16 @@ def validate_directory(data_dir):
             errors.append(f"sale {sale_id}: unknown seller")
         try:
             date.fromisoformat(row["sale_date"])
-            quantity, price = int(row["quantity"]), float(row["unit_price"])
-            discount, net = float(row["discount_rate"]), float(row["net_amount"])
+            quantity = int(row["quantity"])
+            price = Decimal(row["unit_price"])
+            discount = Decimal(row["discount_rate"])
+            net = Decimal(row["net_amount"])
             if quantity <= 0 or price <= 0 or net < 0 or not 0 <= discount <= 1:
                 errors.append(f"sale {sale_id}: invalid numeric values")
-            if abs(net - round(quantity * price * (1 - discount), 2)) > 0.01:
+            expected = (quantity * price * (Decimal("1") - discount)).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
+            if abs(net - expected) > Decimal("0.01"):
                 errors.append(f"sale {sale_id}: net amount does not reconcile")
         except (KeyError, ValueError):
             errors.append(f"sale {sale_id}: invalid date or numeric value")
