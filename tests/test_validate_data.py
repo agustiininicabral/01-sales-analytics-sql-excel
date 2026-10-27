@@ -17,7 +17,7 @@ class SalesDataValidationTests(unittest.TestCase):
     def test_repository_dataset_passes_relational_and_numeric_checks(self) -> None:
         report = validate_directory(ROOT / "data")
         self.assertEqual(report["status"], "PASS", report["failures"][:10])
-        self.assertEqual(report["row_counts"]["sales"], 3500)
+        self.assertEqual(report["row_counts"]["sales"], 7000)
 
     def test_duplicate_sale_id_is_detected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
